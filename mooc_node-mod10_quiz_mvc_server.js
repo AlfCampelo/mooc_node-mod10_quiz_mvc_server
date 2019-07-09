@@ -53,18 +53,27 @@ const index = (quizzes) => `<!-- HTML view -->
 <html>
     <head><title>MVC Example</title><meta charset="utf-8"></head> 
     <body> 
-        <h1>MVC: Quizzes</h1>`
+        <h1>MVC: Quizzes</h1> 
+        <table>`
 + quizzes.reduce(
     (ac, quiz) => ac += 
-`       <a href="/quizzes/${quiz.id}/play">${quiz.question}</a>
-        <a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a>
-        <a href="/quizzes/${quiz.id}?_method=DELETE"
-           onClick="return confirm('Delete: ${quiz.question}')">
-           <button>Delete</button></a>
-        <br>\n`, 
+`       <tr>
+			<td>
+				<a href="/quizzes/${quiz.id}/play">${quiz.question}</a>
+			</td>
+			<td>
+	        	<a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a>
+	        </td>
+	        <td>
+	        	<a href="/quizzes/${quiz.id}?_method=DELETE"
+	           		onClick="return confirm('Delete: ${quiz.question}')">
+	           		<button>Delete</button></a>
+	        </td>
+        </tr>
+        `, /*<br>\n*/
     ""
 )
-+ `     <p/>
++ ` </table>    <p/>
         <a href="/quizzes/new"><button>New Quiz</button></a>
     </body>
 </html>`;
@@ -191,7 +200,7 @@ app.get('/quizzes/:id/play',  playController);
 app.get('/quizzes/:id/check', checkController);
 app.get('/quizzes/new',       newController);
 app.post('/quizzes',          createController);
-
+app.get('quizzes/:id/edit', editController);
     // ..... instalar los MWs asociados a
     //   GET  /quizzes/:id/edit,   PUT  /quizzes/:id y  DELETE  /quizzes/:id
 
