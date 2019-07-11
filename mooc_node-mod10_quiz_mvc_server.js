@@ -137,7 +137,7 @@ const playController = (req, res, next) => {
     let id = Number(req.params.id);
     let response = req.query.response || "";
 
-    quizzes.findById(id)
+    quizzes.findByPk(id)
     .then((quiz) => res.send(play(id, quiz.question, response)))
     .catch((error) => `A DB Error has occurred:\n${error}`);
  };
@@ -147,7 +147,7 @@ const checkController = (req, res, next) => {
     let response = req.query.response, msg;
     let id = Number(req.params.id);
 
-    quizzes.findById(id)
+    quizzes.findByPk(id)
     .then((quiz) => {
         msg = (quiz.answer===response) ?
               `Yes, "${response}" is the ${quiz.question}` 
