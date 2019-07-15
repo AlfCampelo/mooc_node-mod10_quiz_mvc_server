@@ -1,4 +1,3 @@
-
 const express = require('express');
 const app = express();
 
@@ -11,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 var methodOverride = require('method-override');
 app.use(methodOverride('_method'));
-
+app.use(methodOverride('_method', { methods: ['POST','GET']}));
 
    // MODEL
 
@@ -51,73 +50,90 @@ sequelize.sync() // Syncronize DB and seed if needed
 
 const index = (quizzes) => `<!-- HTML view -->
 <html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
+    <head><title>MVC Example</title><meta charset="utf-8">
+    </head> 
     <body> 
-        <h1>MVC: Quizzes</h1> 
-        <table>`
+     <h1>MVC: Quizzes</h1>
+     <table>`
 + quizzes.reduce(
     (ac, quiz) => ac += 
 `       <tr>
-			<td>
-				<a href="/quizzes/${quiz.id}/play">${quiz.question}</a>
-			</td>
-			<td>
-	        	<a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a>
-	        </td>
-	        <td>
-	        	<a href="/quizzes/${quiz.id}?_method=DELETE"
-	           		onClick="return confirm('Delete: ${quiz.question}')">
-	           		<button>Delete</button></a>
-	        </td>
+            <td>
+                <a href="/quizzes/${quiz.id}/play">${quiz.question}</a>
+            </td>
+            <td>
+                <a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a>
+            </td>
+            <td>
+            <td>
+                <a href="/quizzes/${quiz.id}?_method=DELETE"
+                       onClick="return confirm('Delete: ${quiz.question}')">
+                       <button>Delete</button></a>
+            </td>        
         </tr>
-        `, /*<br>\n*/
-    ""
-)
-+ ` </table>    <p/>
-        <a href="/quizzes/new"><button>New Quiz</button></a>
+        `,""        
+    )
++ `
+        <tr>
+            <td>
+            <div><a href="/quizzes/new"><button>New Quiz</button></a></div>
+            </td>
+        </tr>
+    </table>
+    
     </body>
 </html>`;
 
 const play = (id, question, response) => `<!-- HTML view -->
 <html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
+    <head>
+    <title>MVC Example</title>
+    <meta charset="utf-8">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            $(function(){
+                $('#play').on('click',function(){
+                    $.ajax
+                    ({
+                        type:'POST',
+                        url:'/quizzes/${id}/playAjax/'+$('#answer').val(),
+                        success: (msg) => {
+                            $('#solucion').text(msg);
+                        }
+                    });
+                })
+            });
+        </script>       
+    </head>
     <body>
-        <h1>MVC: Quizzes</h1>
-        <form   method="get"   action="/quizzes/${id}/check">
+        <div>
+        <h1>MVC: Quizzes</h1>        
             ${question}: <p>
-            <input type="text" name="response" value="${response}" placeholder="Answer" />
-            <input type="submit" value="Check"/> <br>
-        </form>
+            <input id = 'answer' type="text" name="response" value="${response}" placeholder="Answer" />
+            <button id = 'play' value="Check">Comprobar</button>
+            <p id="solucion"></p>
         </p>
         <a href="/quizzes"><button>Go back</button></a>
-    </body>
-</html>`;
-
-const check = (id, msg, response) => `<!-- HTML view -->
-<html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
-    <body>
-        <h1>MVC: Quizzes</h1>
-        <strong><div id="msg">${msg}</div></strong>
-        <p>
-        <a href="/quizzes"><button>Go back</button></a>
-        <a href="/quizzes/${id}/play?response=${response}"><button>Try again</button></a>
+        </div>
     </body>
 </html>`;
 
 const quizForm =(msg, method, action, question, answer) => `<!-- HTML view -->
 <html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
+    <head><title>MVC Example</title><meta charset="utf-8">    
+    </head> 
     <body>
+    <div  class = 'centrado' >
         <h1>MVC: Quizzes</h1>
         <form   method="${method}"   action="${action}">
             ${msg}: <p>
             <input  type="text"  name="question" value="${question}" placeholder="Question" />
             <input  type="text"  name="answer"   value="${answer}"   placeholder="Answer" />
-            <input  type="submit" value="Create"/> <br>
+            <input  type="submit" value="Aceptar"/> <br>
         </form>
         </p>
         <a href="/quizzes"><button>Go back</button></a>
+        </div>
     </body>
 </html>`;
 
@@ -126,7 +142,6 @@ const quizForm =(msg, method, action, question, answer) => `<!-- HTML view -->
 
 // GET /, GET /quizzes
 const indexController = (req, res, next) => {
- 
     quizzes.findAll()
     .then((quizzes) => res.send(index(quizzes)))
     .catch((error) => `DB Error:\n${error}`);
@@ -190,6 +205,16 @@ const destroyController = (req, res, next) => {
 
      // .... introducir código
  };
+ const checkPlayAjaxController = (req, res, next) => {
+    let id = Number(req.params.id);
+    let response = (req.params.answer);
+    quizzes.findByPk(id)
+    .then((quiz) => {
+        msg = (quiz.answer === response) ? `${response} es correcto` : `${response} es incorrecto`;
+        return res.send(msg);
+    })
+    .catch((error) => `A DB Error has occurred:\n${error}`);
+};
 
 
 
@@ -200,10 +225,14 @@ app.get('/quizzes/:id/play',  playController);
 app.get('/quizzes/:id/check', checkController);
 app.get('/quizzes/new',       newController);
 app.post('/quizzes',          createController);
-app.get('quizzes/:id/edit', editController);
+
     // ..... instalar los MWs asociados a
     //   GET  /quizzes/:id/edit,   PUT  /quizzes/:id y  DELETE  /quizzes/:id
 
+app.get('/quizzes/:id/edit',   editController);
+app.delete('/quizzes/:id', destroyController);
+app.post('/quizzes/:id/update', updateController);
+app.post('/quizzes/:id/playAjax/:answer', checkPlayAjaxController);
 
 app.all('*', (req, res) =>
     res.send("Error: resource not found or method not supported")
@@ -213,4 +242,3 @@ app.all('*', (req, res) =>
    // Server started at port 8000
 
 app.listen(8000);
-
