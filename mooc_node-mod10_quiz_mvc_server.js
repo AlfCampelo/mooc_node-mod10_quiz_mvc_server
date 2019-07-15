@@ -67,7 +67,7 @@ const index = (quizzes) => `<!-- HTML view -->
             <td>
             <td>
                 <a href="/quizzes/${quiz.id}?_method=DELETE"
-                       onClick="return confirm('Delete: ${quiz.question}')">
+                       onClick="return confirm('Desea eliminar el quiz: ${quiz.question}')">
                        <button>Delete</button></a>
             </td>        
         </tr>
@@ -204,14 +204,12 @@ const updateController = (req, res, next) => {
 
 // GET /quizzes/new
 const newController = (req, res, next) => {
-
     res.send(quizForm("Create new Quiz", "post", "/quizzes", "", ""));
  };
 
 // POST /quizzes
 const createController = (req, res, next) => {
     let {question, answer} = req.body;
-
     quizzes.build({question, answer})
     .save()
     .then((quiz) => res.redirect('/quizzes'))
@@ -220,15 +218,22 @@ const createController = (req, res, next) => {
 
 // DELETE /quizzes/1
 const destroyController = (req, res, next) => {
-
-     // .... introducir código
+    let id = Number(req.params.id);
+    quizzes.destroy({where:{id}})
+        .then(
+            quiz => res.redirect('/quizzes')
+        )
+        .catch(error => {
+            console.log(error);
+        })
  };
+
  const checkPlayAjaxController = (req, res, next) => {
     let id = Number(req.params.id);
     let response = (req.params.answer);
     quizzes.findByPk(id)
     .then((quiz) => {
-        msg = (quiz.answer === response) ? `${response} es correcto` : `${response} es incorrecto`;
+        msg = (quiz.answer === response) ? `La respuesta a ${quiz.question}: ${response} es correcta` : `La respuesta a ${quiz.question}: ${response} es incorrecto`;
         return res.send(msg);
     })
     .catch((error) => `A DB Error has occurred:\n${error}`);
