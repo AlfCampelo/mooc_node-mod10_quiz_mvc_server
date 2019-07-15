@@ -174,14 +174,32 @@ const checkController = (req, res, next) => {
 
 //  GET /quizzes/1/edit
 const editController = (req, res, next) => {
-
-     // .... introducir código
+    let id = Number(req.params.id);
+    quizzes.findByPk(id)
+    .then( quiz => {
+        res.send(quizForm("Edit Quiz", "post", `/quizzes/${id}/update`, quiz.question, quiz.answer));
+    })
+    .catch(error => `Quiz not created:\n${error}`);
 };
 
 //  PUT /quizzes/1
 const updateController = (req, res, next) => {
-
-     // .... introducir código
+    let id = Number(req.params.id);
+    let {question, answer} = req.body;
+    quizzes.findByPk(id)
+    .then(
+        quiz => {
+            quiz.answer = answer;
+            quiz.question = question;
+            quiz.save()
+            .then(
+                quiz => res.redirect('/quizzes')
+            )
+        }
+    )
+    .catch(error => {
+        console.log(error);
+    })
 };
 
 // GET /quizzes/new
