@@ -51,10 +51,33 @@ sequelize.sync() // Syncronize DB and seed if needed
 const index = (quizzes) => `<!-- HTML view -->
 <html>
     <head><title>MVC Example</title><meta charset="utf-8">
+        <style>
+            body {
+                background: #42A9D6;
+            }
+            .centro {
+                margin: auto;
+                text-align: center;
+            }
+            button {
+                background-color:#81d4fa;    
+                padding:0.3rem;
+                border-radius:5px;
+                border:solid 1px #0288d1;
+                margin-top:0.3em;
+                margin-bottom:0.3em;
+                width:8em;
+                cursor:pointer;
+            }
+            button:hover {
+                background-color:#0277bd;
+                color:white;    
+            }
+        </style>
     </head> 
     <body> 
-     <h1>MVC: Quizzes</h1>
-     <table>`
+     <h1  class="centro">MVC: Quizzes</h1><br><br><br><br>
+     <table class="centro">`
 + quizzes.reduce(
     (ac, quiz) => ac += 
 `       <tr>
@@ -103,16 +126,55 @@ const play = (id, question, response) => `<!-- HTML view -->
                     });
                 })
             });
-        </script>       
+        </script>
+        <style>
+            body {
+                background: #42A9D6;
+            }
+            .centro {
+                margin: auto;
+                text-align: center;
+            }            
+            button, input[type=submit] {
+                background-color:#81d4fa;    
+                padding:0.3rem;
+                border-radius:5px;
+                border:solid 1px #0288d1;
+                margin-top:0.3em;
+                margin-bottom:0.3em;
+                width:8em;
+                cursor:pointer;
+            }
+            button:hover {
+                background-color:#0277bd;
+                color:white;    
+            }
+            input[type=submit]:hover{
+                background-color:#0277bd;
+                color:white;    
+            }
+            #solucion {
+                font-family: Impact, Charcoal, sans-serif;
+                font-size: 20px;
+
+            }
+            #question {
+                font-weight: bold;
+                font-size: 20px;
+            }
+
+        </style>       
     </head>
     <body>
-        <div>
-        <h1>MVC: Quizzes</h1>        
-            ${question}: <p>
-            <input id = 'answer' type="text" name="response" value="${response}" placeholder="Answer" />
-            <button id = 'play' value="Check">Comprobar</button>
-            <p id="solucion"></p>
-        </p>
+    </head> 
+        <h1 class="centro">MVC: Quizzes</h1><br><br><br><br>
+        <div class="centro">               
+            <span id="question">${question}:</span>
+            <p>
+                <input id ='answer' type="text" name="response" value="${response}" placeholder="Answer" />
+                <button id ='play' value="Check">Comprobar</button>
+                <p id="solucion"></p>
+            </p>
         <a href="/quizzes"><button>Go back</button></a>
         </div>
     </body>
@@ -121,12 +183,43 @@ const play = (id, question, response) => `<!-- HTML view -->
 const quizForm =(msg, method, action, question, answer) => `<!-- HTML view -->
 <html>
     <head><title>MVC Example</title><meta charset="utf-8">    
+        <style>
+            body {
+                background: #42A9D6;
+            }
+            .centro {
+                margin: auto;
+                text-align: center;
+            }         
+            #msg {
+                font-weight: bold;
+                font-size: 20px;
+            }   
+            button, input[type=submit] {
+                background-color:#81d4fa;    
+                padding:0.3rem;
+                border-radius:5px;
+                border:solid 1px #0288d1;
+                margin-top:0.3em;
+                margin-bottom:0.3em;
+                width:8em;
+                cursor:pointer;
+            }
+            button:hover {
+                background-color:#0277bd;
+                color:white;    
+            }
+            input[type=submit]:hover{
+                background-color:#0277bd;
+                color:white;    
+            }
+        </style>
     </head> 
     <body>
-    <div  class = 'centrado' >
-        <h1>MVC: Quizzes</h1>
-        <form   method="${method}"   action="${action}">
-            ${msg}: <p>
+    <div class="centro">
+        <h1 class="centro">MVC: Quizzes</h1><br><br><br><br>
+        <form method="${method}" action="${action}">
+            <span id="msg">${msg}:</span> <p>
             <input  type="text"  name="question" value="${question}" placeholder="Question" />
             <input  type="text"  name="answer"   value="${answer}"   placeholder="Answer" />
             <input  type="submit" value="Aceptar"/> <br>
@@ -176,7 +269,7 @@ const checkController = (req, res, next) => {
 const editController = (req, res, next) => {
     let id = Number(req.params.id);
     quizzes.findByPk(id)
-    .then( quiz => {
+    .then(quiz => {
         res.send(quizForm("Edit Quiz", "post", `/quizzes/${id}/update`, quiz.question, quiz.answer));
     })
     .catch(error => `Quiz not created:\n${error}`);
@@ -187,15 +280,12 @@ const updateController = (req, res, next) => {
     let id = Number(req.params.id);
     let {question, answer} = req.body;
     quizzes.findByPk(id)
-    .then(
-        quiz => {
-            quiz.answer = answer;
-            quiz.question = question;
-            quiz.save()
-            .then(
-                quiz => res.redirect('/quizzes')
-            )
-        }
+    .then(quiz => {
+        quiz.answer = answer;
+        quiz.question = question;
+        quiz.save()
+        .then(quiz => res.redirect('/quizzes'))        
+        }           
     )
     .catch(error => {
         console.log(error);
@@ -220,12 +310,10 @@ const createController = (req, res, next) => {
 const destroyController = (req, res, next) => {
     let id = Number(req.params.id);
     quizzes.destroy({where:{id}})
-        .then(
-            quiz => res.redirect('/quizzes')
-        )
-        .catch(error => {
-            console.log(error);
-        })
+    .then(quiz => res.redirect('/quizzes'))  
+    .catch(error => {
+        console.log(error);
+    })
  };
 
  const checkPlayAjaxController = (req, res, next) => {
